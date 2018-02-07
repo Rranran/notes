@@ -1,0 +1,3 @@
+# notes
+
+some personal notes
