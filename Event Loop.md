@@ -76,6 +76,74 @@ setTimeout(function() {
 // 1，7，6，8，2，4，3，5，9，11，10，12
 ```
 
-参考文档：  
-https://coderlt.coding.me/2017/12/13/event-loop/  
-https://juejin.im/post/5b498d245188251b193d4059#heading-11  
+---
+
+另外还有一个async await  
+
+**async 函数**  
+1. async 函数返回一个 Promise 对象，可以使用 then 方法添加回调函数。
+2. async 函数内部抛出错误，会导致返回的 Promise 对象变为 reject 状态。抛出的错误对象会被 catch 方法回调函数接收到。
+3. async 函数返回的 Promise 对象，必须等到内部所有 await 命令后面的 Promise 对象执行完，才会发生状态改变，除非遇到 return 语句或者抛出错误。也就是说，只有 async 函数内部的异步操作执行完，才会执行 then 方法指定的回调函数。
+
+```javascript
+async function func1() {
+    return 1
+}
+
+// func1的运行结果是一个Promise对象，可使用then来处理后续逻辑
+
+func1().then(res => {
+    console.log(res);  // 1
+})
+```
+
+**await 命令**
+await 的含义为等待，也就是 async 函数需要等待 await 后的函数执行完成并且有了返回结果（ Promise 对象）之后，才能继续执行下面的代码
+
+```javascript
+setTimeout(_ => console.log('setTimeout')
+
+async function main() {
+  console.log('async start')
+  await Promise.resolve()
+  console.log('async end')
+}
+
+main()
+
+console.log(2)
+
+// async start -> 2 -> async end -> setTimeout
+
+```
+> async/await 本质上还是基于 Promise 的一些封装，而 Promise 是属于微任务的一种。所以在使用await关键字与 Promise.then 效果类似  
+> async 函数在 await 之前的代码都是同步执行的，可以理解为 await 之前的代码属 于 new Promise 时传入的代码，await 之后的所有代码都是在 Promise.then 中的回调
+
+
+---
+```javascript
+const p = Promise.resolve();
+(async () => {
+    await p;
+    console.log('await end');
+})();
+p.then(() => {
+    console.log('then 1');
+}).then(() => {
+    console.log('then 2');
+});
+// chrome中运行结果是 await end -> then 1 -> then 2 
+// 在node中是 then 1 -> then 2 -> await end
+```
+
+浏览器的Event loop是遵循的HTML5的标准
+1. 先取出一个macrotask来执行，执行完成后下一步
+2. 取一个microtask来执行，执行完成后，再取出一个来执行，直到microtask queqe清空，执行下一步
+3. 更新UI渲染  
+
+
+NodeJs的Event loop遵循的是libuv
+1. 初始化Event loop
+2. 执行主代码，同样遇到异步操作，分配给对应的队列，直到主代码执行完成
+3. 执行代码中出现的所有microtask 先执行完所有的NextTick,再执行其他micro task,
+4. 开始Event loop
